@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 from celery import Celery, shared_task
@@ -16,17 +17,6 @@ try:
     celery = Celery(__name__, broker=celery_broker_url, backend=celery_backend_url)
 except Exception as e:
     raise e
-
-
-@after_setup_logger.connect
-def setup_celery_logger(logger, *args, **kwargs):
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    logger = logging.getLogger("tasks")
-    fh = logging.FileHandler("logs/tasks.log")
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
 
 
 @celery.task(name="push_notification")

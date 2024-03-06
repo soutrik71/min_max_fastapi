@@ -1,8 +1,7 @@
 import logging
 import os
 
-if not os.path.exists("logs"):
-    os.makedirs("logs")
+os.makedirs(os.path.join(os.getcwd(), "logs"), exist_ok=True)
 
 logging.basicConfig(
     filename="logs/app.log",

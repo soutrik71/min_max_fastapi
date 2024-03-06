@@ -19,7 +19,13 @@ Application of simple Fast API with celery services
 
 ```bash
 (windows) --> watchmedo auto-restart --directory=./ --pattern=*.py --recursive --  celery -A app.tasks worker --pool=solo --prefetch-multiplier=1 --loglevel=info
-(linux) --> watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.celery_tasks worker --concurrency=1 --prefetch-multiplier=1 --loglevel=info --logfile=logs/celery.log
+(linux) --> watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.tasks worker --concurrency=1 --prefetch-multiplier=1 --loglevel=info --logfile=logs/app.log
+```
+
+## flower
+
+```bash
+celery -A app.tasks flower --port=5555
 ```
 
 ## Fast API
