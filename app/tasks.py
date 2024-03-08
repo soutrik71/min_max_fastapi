@@ -1,26 +1,26 @@
-import logging
-import os
-import time
+import asyncio
 
-from celery import Celery, shared_task
-from celery.signals import after_setup_logger
+from celery import shared_task, states
+from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
 from fastapi.responses import JSONResponse
 
-from app.broker_test import test_celery_broker_url
-from app.settings import celery_backend_url, celery_broker_url
+from app.worker import celery
+from engine.dummy_methods import method1, method2, method3
 
 logger = get_task_logger("tasks")
 
-try:
-    test_celery_broker_url()
-    celery = Celery(__name__, broker=celery_broker_url, backend=celery_backend_url)
-except Exception as e:
-    raise e
 
-
-@celery.task(name="push_notification")
-def push_notification(input_token: str):
-    time.sleep(5)
+@celery.task(name="push_notification", bind=True, retry_kwargs={"max_retries": 3})
+def push_notification(self, input_token: str):
     logger.info(f"Sending notification to {input_token} as part of celery task")
-    return {"result": f"Notification sent to {input_token}"}
+    start = 0
+    op1 = asyncio.run(method1(input_token))
+    self.update_state(state="PROGRESS", meta={"output": op1})
+    op2 = asyncio.run(method2(input_token))
+    self.update_state(state="PROGRESS", meta={"output": op2})
+    op3 = asyncio.run(method3(input_token))
+    self.update_state(state=states.SUCCESS, meta={"output": op3, "result": op3})
+    raise Ignore()
+
+    return {"result": op3}

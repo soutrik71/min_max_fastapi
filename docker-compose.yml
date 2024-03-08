@@ -16,53 +16,53 @@ services:
       retries: 5
       start_period: 5s
 
-  api:
-    container_name: api
-    build:
-      context: .
-      dockerfile: api.Dockerfile
-    command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 80
-    ports:
-      - 8081:80
-    env_file:
-      - .env
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - redis
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/ding"]
-      interval: 30s
-      timeout: 1m30s
-      retries: 5
-      start_period: 5s
+  # api:
+  #   container_name: api
+  #   build:
+  #     context: .
+  #     dockerfile: api.Dockerfile
+  #   command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 80
+  #   ports:
+  #     - 8081:80
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   depends_on:
+  #     - redis
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:80/ding"]
+  #     interval: 30s
+  #     timeout: 1m30s
+  #     retries: 5
+  #     start_period: 5s
 
-  worker:
-    container_name: worker
-    build:
-      context: ./
-      dockerfile: worker.Dockerfile
-    command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.tasks worker --concurrency=1 --prefetch-multiplier=1 --loglevel=info
-    env_file:
-      - .env
-    depends_on:
-      - redis
-      - api
+  # worker:
+  #   container_name: worker
+  #   build:
+  #     context: ./
+  #     dockerfile: worker.Dockerfile
+  #   command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.tasks worker --concurrency=1 --prefetch-multiplier=1 --loglevel=info
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - redis
+  #     - api
 
-  monitor:
-    container_name: monitor
-    build:
-      context: .
-      dockerfile: worker.Dockerfile
-    command: celery -A app.tasks flower --port=5555
-    ports:
-      - 5555:5555
-    env_file:
-      - .env
-    depends_on:
-     - redis
-     - api
-     - worker
+  # monitor:
+  #   container_name: monitor
+  #   build:
+  #     context: .
+  #     dockerfile: worker.Dockerfile
+  #   command: celery -A app.tasks flower --port=5555
+  #   ports:
+  #     - 5555:5555
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #    - redis
+  #    - api
+  #    - worker
 
   dozzle:
     container_name: dozzle
