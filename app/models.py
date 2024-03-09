@@ -20,3 +20,10 @@ class Weather(Base):
     day = Column("day", String)
     description = Column("description", String)
     degree = Column("degree", Float)
+
+
+class Nested(Base):
+    __tablename__ = "Nested"
+    id = Column("id", Integer, primary_key=True, autoincrement=True)
+    input_token = Column("input_token", String)
+    output = Column("output", String)

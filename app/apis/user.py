@@ -11,23 +11,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/user", tags=["users"])
 
 
-@router.get("/")
-def read_root():
-    """
-    Developer: SC
-    """
-    return {"Chowdhury": "Soutrik"}
-
-
-@router.post("/users/{count}/{delay}", status_code=201)
-def add_user(count: int, delay: int):
+@router.post("/users/{count}", status_code=201)
+def add_user(count: int):
     """
     Get random user data from randomuser.me/api and
     add database using Celery. Uses Redis as Broker
     and Postgres as Backend.
     """
-    logger.info(f"Adding {count} users with {delay} sec delay")
-    task = task_add_user.delay(count, delay)
+    logger.info(f"Adding {count} users")
+    task = task_add_user.apply_async((count,))
     return {"task_id": task.id}
 
 
@@ -38,8 +30,8 @@ def add_user_default_delay(count: int):
     database using Celery. Uses Redis as Broker
     and Postgres as Backend. (Delay = 10 sec)
     """
-    logger.info(f"Adding {count} users with 10 sec delay")
-    return add_user(count, 10)
+    logger.info(f"Adding {count} users")
+    return add_user(count)
 
 
 @router.get("/users/{user_id}")

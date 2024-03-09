@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -26,3 +28,8 @@ class WeatherOut(BaseModel):
     day: str
     description: str
     degree: float
+
+
+class NestedIn(BaseModel):
+    input_token: str
+    output: Optional[str] = None

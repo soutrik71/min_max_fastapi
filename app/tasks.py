@@ -1,30 +1,29 @@
+import asyncio
 import os
-import time
 
 import requests
-from celery import Celery
+from celery import shared_task, states
+from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
 from fastapi.responses import JSONResponse
 
-from app.broker_test import test_celery_broker_url
-from app.crud import crud_add_user, crud_add_weather
-from app.schemas import UserIn, WeatherIn
-from app.settings import celery_backend_url, celery_broker_url
+from app.crud import (
+    crud_add_nested,
+    crud_add_user,
+    crud_add_weather,
+    crud_update_nested,
+)
+from app.schemas import NestedIn, UserIn, WeatherIn
+from app.worker import celery
+from engine.methods import method1, method2, method3
 
-logger = get_task_logger("tasks")
-
-try:
-    test_celery_broker_url()
-    celery = Celery(__name__, broker=celery_broker_url, backend=celery_backend_url)
-except Exception as e:
-    raise e
+logger = get_task_logger(__name__)
 
 
-@celery.task
-def task_add_user(count: int, delay: int):
+@celery.task(name="task_add_user", bind=True, retry_kwargs={"max_retries": 3})
+def task_add_user(count: int):
     url = "https://randomuser.me/api"
     response = requests.get(f"{url}?results={count}").json()["results"]
-    time.sleep(delay)
     result = []
     for item in response:
         user = UserIn(
@@ -38,15 +37,14 @@ def task_add_user(count: int, delay: int):
     return {"success": result}
 
 
-@celery.celery
-def task_add_weather(city: str, delay: int):
+@celery.task(name="task_add_weather", bind=True, retry_kwargs={"max_retries": 3})
+def task_add_weather(city: str):
     url = "https://api.collectapi.com/weather/getWeather?data.lang=tr&data.city="
     headers = {
         "content-type": "application/json",
         "authorization": "apikey 4HKS8SXTYAsGz45l4yIo9P:0NVczbcuJfjQb8PW7hQV48",
     }
     response = requests.get(f"{url}{city}", headers=headers).json()["result"]
-    time.sleep(delay)
     result = []
     for item in response:
         weather = WeatherIn(
@@ -59,3 +57,24 @@ def task_add_weather(city: str, delay: int):
         if crud_add_weather(weather):
             result.append(weather.dict())
     return {"success": result}
+
+
+@celery.task(name="nested_application", bind=True, retry_kwargs={"max_retries": 3})
+def nested_application(self, input_token: str):
+    logger.info(f"Sending notification to {input_token} as part of celery task")
+    nested = crud_update_nested(NestedIn(input_token=input_token))
+    # task1
+    op1 = asyncio.run(method1(input_token))
+    self.update_state(state="PROGRESS", meta={"output": op1})
+    nested = NestedIn(input_token=input_token, output=op1)
+    crud_update_nested(nested)
+    # task2
+    op2 = asyncio.run(method2(input_token))
+    self.update_state(state="PROGRESS", meta={"output": op2})
+    nested = NestedIn(input_token=input_token, output=op2)
+    crud_update_nested(nested)
+
+    # task3
+    op3 = asyncio.run(method3(input_token))
+    self.update_state(state=states.SUCCESS, meta={"output": op3, "result": op3})
+    raise Ignore()

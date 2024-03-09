@@ -19,7 +19,7 @@ def add_weather_default_delay(city: str):
     and Postgres as Backend. (Delay = 10 sec)
     """
     logger.info(f"Adding weather for city: {city}")
-    return task_add_weather(city, 10)
+    return task_add_weather.apply_async((city,))
 
 
 @router.get("/weathers/{city}")

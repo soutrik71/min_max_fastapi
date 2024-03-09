@@ -2,8 +2,8 @@ from fastapi import Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
-from app.models import User, Weather
-from app.schemas import UserIn, UserOut, WeatherIn, WeatherOut
+from app.models import Nested, User, Weather
+from app.schemas import NestedIn, UserIn, UserOut, WeatherIn, WeatherOut
 
 DB: Session = Depends(get_db_session)
 
@@ -56,6 +56,28 @@ def crud_get_weather(city: str, db: Session = DB):
             result.append(WeatherOut(**item.__dict__))
         return {city: result[::-1]}
 
+    return None
+
+
+def crud_add_nested(nested: NestedIn, db: Session = DB):
+
+    db_nested = Nested(**nested.dict())
+    db.add(db_nested)
+    db.commit()
+    db.refresh(db_nested)
+    return db_nested
+
+
+def crud_update_nested(nested: NestedIn, db: Session = DB):
+
+    db_nested = (
+        db.query(Nested).filter(Nested.input_token == nested.input_token).first()
+    )
+    if db_nested:
+        db_nested.output = nested.output
+        db.commit()
+        db.refresh(db_nested)
+        return db_nested
     return None
 
 
