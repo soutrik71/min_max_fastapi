@@ -78,3 +78,6 @@ def nested_application(self, input_token: str):
     op3 = asyncio.run(method3(input_token))
     self.update_state(state=states.SUCCESS, meta={"output": op3, "result": op3})
     raise Ignore()
+
+
+# Orchestration of muktile functions -> celery taks

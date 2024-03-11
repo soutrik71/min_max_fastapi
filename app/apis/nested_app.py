@@ -9,3 +9,5 @@ from app.tasks import nested_application
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/nested", tags=["nested"])
+
+@router
