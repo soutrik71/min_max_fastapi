@@ -4,10 +4,13 @@ import uvicorn
 from fastapi import FastAPI
 
 from app.apis import tasks, user, weather
+from app.db import Base, engine
 from app.logger import logging
 
 logger = logging.getLogger(__name__)
 
+# Create tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(user.router)

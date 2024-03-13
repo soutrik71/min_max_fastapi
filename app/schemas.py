@@ -32,4 +32,5 @@ class WeatherOut(BaseModel):
 
 class NestedIn(BaseModel):
     input_token: str
+    chat_id: Optional[str] = None
     output: Optional[str] = None

@@ -26,4 +26,5 @@ class Nested(Base):
     __tablename__ = "Nested"
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     input_token = Column("input_token", String)
+    chat_id = Column("chat_id", String)
     output = Column("output", String)

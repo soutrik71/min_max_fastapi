@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/weather", tags=["weather"])
 
 
-@router.post("/weathers/{city}", status_code=201)
+@router.post("/{city}", status_code=201)
 def add_weather_default_delay(city: str):
     """
     Get weather data from api.collectapi.com/weather
@@ -22,7 +22,7 @@ def add_weather_default_delay(city: str):
     return task_add_weather.apply_async((city,))
 
 
-@router.get("/weathers/{city}")
+@router.get("/{city}")
 def get_weather(city: str):
     """
     Get weather from database.
